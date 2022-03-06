@@ -70,7 +70,7 @@ func main() {
 			e = append(e, record[1:]...)
 		}
 
-		e = append(e, PreviewString(c.Summary, 40), fmt.Sprintf("%s %s", c.Product, c.Version), c.Status, c.Severity, FormatDate(c.LastModified))
+		e = append(e, PreviewString(c.Summary, 40), ShortenProductRelease(c.Product, c.Version, false), c.Status, c.Severity, FormatDate(c.LastModified))
 
 		if len(c.Bugzillas.Items) == 0 {
 			w.Write(e)
