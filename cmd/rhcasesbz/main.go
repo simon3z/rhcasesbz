@@ -17,19 +17,19 @@ func main() {
 	rhbzkey := os.Getenv("RHBZKEY")
 	rhjikey := os.Getenv("RHJIKEY")
 
-	h, err := rhcasesbz.NewHydraClient("https://api.access.redhat.com", rhuser, rhpass)
+	h, err := rhcasesbz.NewHydraClient("https://api.access.redhat.com", rhcasesbz.NewBasicAuthTransport(nil, rhuser, rhpass))
 
 	if err != nil {
 		panic(err)
 	}
 
-	b, err := rhcasesbz.NewBugzillaClient("https://bugzilla.redhat.com", rhbzkey)
+	b, err := rhcasesbz.NewBugzillaClient("https://bugzilla.redhat.com", rhcasesbz.NewBearerAuthTransport(nil, rhbzkey))
 
 	if err != nil {
 		panic(err)
 	}
 
-	j, err := rhcasesbz.NewJiraClient("https://issues.redhat.com", rhjikey)
+	j, err := rhcasesbz.NewJiraClient("https://issues.redhat.com", rhcasesbz.NewBearerAuthTransport(nil, rhjikey))
 
 	if err != nil {
 		panic(err)

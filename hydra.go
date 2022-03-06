@@ -11,9 +11,8 @@ import (
 /* cspell:ignore rhcasesbz bugzilla bugzillas  bzapikey */
 
 type HydraClient struct {
-	BaseURL  *url.URL
-	Username string
-	Password string
+	BaseURL   *url.URL
+	Transport http.RoundTripper
 }
 
 type HydraAccount struct {
@@ -65,14 +64,14 @@ func (c *HydraCase) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func NewHydraClient(baseURL, username, password string) (*HydraClient, error) {
+func NewHydraClient(baseURL string, transport http.RoundTripper) (*HydraClient, error) {
 	u, err := url.Parse(baseURL)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &HydraClient{u, username, password}, nil
+	return &HydraClient{u, transport}, nil
 }
 
 func (h *HydraClient) getRequest(path string, v interface{}) error {
@@ -88,7 +87,7 @@ func (h *HydraClient) getRequest(path string, v interface{}) error {
 		return err
 	}
 
-	client := &http.Client{Transport: NewBasicAuthTransport(NewJSONTransport(http.DefaultTransport), h.Username, h.Password)}
+	client := &http.Client{Transport: NewJSONTransport(h.Transport)}
 	r, err := client.Do(request)
 
 	if err != nil {

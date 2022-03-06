@@ -9,18 +9,18 @@ import (
 )
 
 type JiraClient struct {
-	BaseURL *url.URL
-	ApiKey  string
+	BaseURL   *url.URL
+	Transport http.RoundTripper
 }
 
-func NewJiraClient(baseURL, apikey string) (*JiraClient, error) {
+func NewJiraClient(baseURL string, transport http.RoundTripper) (*JiraClient, error) {
 	u, err := url.Parse(baseURL)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &JiraClient{u, apikey}, nil
+	return &JiraClient{u, transport}, nil
 }
 
 type JiraIssue struct {
@@ -47,7 +47,7 @@ func (j *JiraClient) FindIssues(jql string) ([]JiraIssue, error) {
 		return nil, err
 	}
 
-	client := &http.Client{Transport: NewBearerAuthTransport(NewJSONTransport(http.DefaultTransport), j.ApiKey)}
+	client := &http.Client{Transport: NewJSONTransport(j.Transport)}
 	r, err := client.Do(request)
 
 	if err != nil {

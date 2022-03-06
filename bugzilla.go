@@ -14,8 +14,8 @@ import (
 var ErrBugNotFound = errors.New("bugzilla: bug not found")
 
 type BugzillaClient struct {
-	BaseURL *url.URL
-	ApiKey  string
+	BaseURL   *url.URL
+	Transport http.RoundTripper
 }
 
 type BugzillaBug struct {
@@ -28,14 +28,14 @@ type BugzillaBug struct {
 	LastChangeTime        time.Time `json:"-"`
 }
 
-func NewBugzillaClient(baseURL string, apikey string) (*BugzillaClient, error) {
+func NewBugzillaClient(baseURL string, transport http.RoundTripper) (*BugzillaClient, error) {
 	u, err := url.Parse(baseURL)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &BugzillaClient{u, apikey}, nil
+	return &BugzillaClient{u, transport}, nil
 }
 
 func (c *BugzillaBug) UnmarshalJSON(data []byte) error {
@@ -75,7 +75,7 @@ func (b *BugzillaClient) FetchBug(id string) (*BugzillaBug, error) {
 		return nil, err
 	}
 
-	client := &http.Client{Transport: NewBearerAuthTransport(NewJSONTransport(http.DefaultTransport), b.ApiKey)}
+	client := &http.Client{Transport: NewJSONTransport(b.Transport)}
 	r, err := client.Do(request)
 
 	if err != nil {

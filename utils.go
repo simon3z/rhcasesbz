@@ -17,6 +17,9 @@ type BasicAuthTransport struct {
 }
 
 func NewBasicAuthTransport(p http.RoundTripper, username, password string) *BasicAuthTransport {
+	if p == nil {
+		p = http.DefaultTransport
+	}
 	return &BasicAuthTransport{p, username, password}
 }
 
@@ -31,6 +34,9 @@ type BearerAuthTransport struct {
 }
 
 func NewBearerAuthTransport(p http.RoundTripper, token string) *BearerAuthTransport {
+	if p == nil {
+		p = http.DefaultTransport
+	}
 	return &BearerAuthTransport{p, token}
 }
 
@@ -44,6 +50,9 @@ type JSONTransport struct {
 }
 
 func NewJSONTransport(p http.RoundTripper) *JSONTransport {
+	if p == nil {
+		p = http.DefaultTransport
+	}
 	return &JSONTransport{p}
 }
 
