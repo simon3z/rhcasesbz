@@ -6,9 +6,11 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/simon3z/rhcasesbz"
 )
 
-/* cspell:ignore kubernetes rhacm rhocs rhodf */
+/* cspell:ignore rhcasesbz kubernetes rhacm rhocs rhodf */
 
 func Hyperlink(text, url string) string {
 	return fmt.Sprintf("=HYPERLINK(\"%s\",\"%s\")", url, text)
@@ -60,4 +62,28 @@ func ShortenProductRelease(product, release string, l bool) string {
 	}
 
 	return fmt.Sprintf("%s%s%s", p, s, release)
+}
+
+func GetBugTargetRelease(b *rhcasesbz.BugzillaBug) string {
+	if b.ZStreamTarget != "" && b.ZStreamTarget != "---" {
+		return b.ZStreamTarget
+	}
+
+	if b.InternalTargetRelease != "" && b.InternalTargetRelease != "---" {
+		return b.InternalTargetRelease
+	}
+
+	r := []string{}
+
+	for _, i := range b.TargetRelease {
+		if i != "" && i != "---" {
+			r = append(r, i)
+		}
+	}
+
+	if len(r) == 0 {
+		return ""
+	}
+
+	return strings.Join(r, ",")
 }

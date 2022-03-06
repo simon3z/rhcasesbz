@@ -8,7 +8,7 @@ import (
 	"net/url"
 )
 
-/* cspell:ignore rhcasesbz */
+/* cspell:ignore rhcasesbz zstream */
 
 var ErrBugNotFound = errors.New("bugzilla: bug not found")
 
@@ -18,9 +18,12 @@ type BugzillaClient struct {
 }
 
 type BugzillaBug struct {
-	Summary       string
-	Status        string
-	TargetRelease []string `json:"target_release"`
+	Summary               string
+	Status                string
+	Product               string
+	TargetRelease         []string `json:"target_release"`
+	ZStreamTarget         string   `json:"cf_zstream_target_release"`
+	InternalTargetRelease string   `json:"cf_internal_target_release"`
 }
 
 func NewBugzillaClient(baseURL string, apikey string) (*BugzillaClient, error) {

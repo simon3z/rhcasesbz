@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/simon3z/rhcasesbz"
 )
@@ -82,7 +81,7 @@ func main() {
 					panic(err)
 				}
 
-				z := append(e, Hyperlink(fmt.Sprintf("BZ#%s", i.ID), i.Link), PreviewString(u.Summary, 40), u.Status, strings.Join(u.TargetRelease, ","))
+				z := append(e, Hyperlink(fmt.Sprintf("BZ#%s", i.ID), i.Link), PreviewString(u.Summary, 40), u.Status, ShortenProductRelease(u.Product, GetBugTargetRelease(u), true))
 
 				w.Write(z)
 			}
