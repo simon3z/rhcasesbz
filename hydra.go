@@ -85,10 +85,6 @@ func (h *HydraClient) FetchCase(id string) (*HydraCase, error) {
 	return c, nil
 }
 
-func (c *HydraCase) Link() string {
-	return fmt.Sprintf("https://access.redhat.com/support/cases/#/case/%s", c.ID)
-}
-
 func (h *HydraClient) FetchAccount(id string) (*HydraAccount, error) {
 	a := new(HydraAccount)
 

@@ -70,7 +70,7 @@ func main() {
 			accountMap[c.Account] = a.Name
 		}
 
-		e := []string{Hyperlink(record[0], c.Link()), accountMap[c.Account]}
+		e := []string{Hyperlink(record[0], GetCaseLink(c.ID)), accountMap[c.Account]}
 
 		if len(record) > 1 {
 			e = append(e, record[1:]...)
