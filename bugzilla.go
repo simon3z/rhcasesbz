@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 /* cspell:ignore rhcasesbz zstream */
@@ -21,9 +22,10 @@ type BugzillaBug struct {
 	Summary               string
 	Status                string
 	Product               string
-	TargetRelease         []string `json:"target_release"`
-	ZStreamTarget         string   `json:"cf_zstream_target_release"`
-	InternalTargetRelease string   `json:"cf_internal_target_release"`
+	TargetRelease         []string  `json:"target_release"`
+	ZStreamTarget         string    `json:"cf_zstream_target_release"`
+	InternalTargetRelease string    `json:"cf_internal_target_release"`
+	LastChangeTime        time.Time `json:"-"`
 }
 
 func NewBugzillaClient(baseURL string, apikey string) (*BugzillaClient, error) {
@@ -34,6 +36,30 @@ func NewBugzillaClient(baseURL string, apikey string) (*BugzillaClient, error) {
 	}
 
 	return &BugzillaClient{u, apikey}, nil
+}
+
+func (c *BugzillaBug) UnmarshalJSON(data []byte) error {
+	type BugzillaBugJSON BugzillaBug
+
+	d := new(struct {
+		BugzillaBugJSON
+		LastChangeTimeString string `json:"last_change_time"`
+	})
+
+	err := json.Unmarshal(data, d)
+
+	if err != nil {
+		return err
+	}
+
+	*c = (BugzillaBug)(d.BugzillaBugJSON)
+	c.LastChangeTime, err = time.Parse(time.RFC3339, d.LastChangeTimeString)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (b *BugzillaClient) FetchBug(id string) (*BugzillaBug, error) {

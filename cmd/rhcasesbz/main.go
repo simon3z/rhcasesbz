@@ -97,7 +97,7 @@ func main() {
 					panic(err)
 				}
 
-				z := append(e, Hyperlink(fmt.Sprintf("BZ#%s", i.ID), i.Link), ts, PreviewString(u.Summary, 40), u.Status, ShortenProductRelease(u.Product, GetBugTargetRelease(u), true))
+				z := append(e, Hyperlink(fmt.Sprintf("BZ#%s", i.ID), i.Link), ts, PreviewString(u.Summary, 40), u.Status, ShortenProductRelease(u.Product, GetBugTargetRelease(u), true), FormatDate(u.LastChangeTime))
 
 				w.Write(z)
 			}
