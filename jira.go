@@ -1,7 +1,6 @@
 package rhcasesbz
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,8 +8,7 @@ import (
 )
 
 type JiraClient struct {
-	BaseURL   *url.URL
-	Transport http.RoundTripper
+	JSONClient
 }
 
 func NewJiraClient(baseURL string, transport http.RoundTripper) (*JiraClient, error) {
@@ -20,7 +18,7 @@ func NewJiraClient(baseURL string, transport http.RoundTripper) (*JiraClient, er
 		return nil, err
 	}
 
-	return &JiraClient{u, transport}, nil
+	return &JiraClient{JSONClient{u, transport}}, nil
 }
 
 type JiraIssue struct {
@@ -30,37 +28,13 @@ type JiraIssue struct {
 }
 
 func (j *JiraClient) FindIssues(jql string) ([]JiraIssue, error) {
-	u := url.URL{
-		Scheme: j.BaseURL.Scheme,
-		Host:   j.BaseURL.Host,
-		Path:   fmt.Sprintf("%s/rest/api/2/search", j.BaseURL.Path),
-	}
-
-	q := u.Query()
-	q.Add("jql", jql)
-
-	u.RawQuery = q.Encode()
-
-	request, err := http.NewRequest("GET", u.String(), nil)
-
-	if err != nil {
-		return nil, err
-	}
-
-	client := &http.Client{Transport: NewJSONTransport(j.Transport)}
-	r, err := client.Do(request)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer r.Body.Close()
+	q := &url.Values{"jql": []string{jql}}
 
 	jiraResponse := new(struct {
 		Issues []JiraIssue
 	})
 
-	err = json.NewDecoder(r.Body).Decode(jiraResponse)
+	err := j.JSONGetRequest("/rest/api/2/search", q, jiraResponse)
 
 	if err != nil {
 		return nil, err

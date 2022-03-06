@@ -1,9 +1,11 @@
 package rhcasesbz
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 /* cspell:ignore rhcasesbz */
@@ -71,4 +73,44 @@ func (t *JSONTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	}
 
 	return response, err
+}
+
+type JSONClient struct {
+	BaseURL   *url.URL
+	Transport http.RoundTripper
+}
+
+func (c *JSONClient) JSONGetRequest(path string, query *url.Values, v interface{}) error {
+	u := url.URL{
+		Scheme: c.BaseURL.Scheme,
+		Host:   c.BaseURL.Host,
+		Path:   fmt.Sprintf("%s/%s", c.BaseURL.Path, path),
+	}
+
+	if query != nil {
+		u.RawQuery = query.Encode()
+	}
+
+	request, err := http.NewRequest("GET", u.String(), nil)
+
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{Transport: NewJSONTransport(c.Transport)}
+	r, err := client.Do(request)
+
+	if err != nil {
+		return err
+	}
+
+	defer r.Body.Close()
+
+	err = json.NewDecoder(r.Body).Decode(v)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

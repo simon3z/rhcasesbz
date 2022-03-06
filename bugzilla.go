@@ -14,8 +14,7 @@ import (
 var ErrBugNotFound = errors.New("bugzilla: bug not found")
 
 type BugzillaClient struct {
-	BaseURL   *url.URL
-	Transport http.RoundTripper
+	JSONClient
 }
 
 type BugzillaBug struct {
@@ -35,7 +34,7 @@ func NewBugzillaClient(baseURL string, transport http.RoundTripper) (*BugzillaCl
 		return nil, err
 	}
 
-	return &BugzillaClient{u, transport}, nil
+	return &BugzillaClient{JSONClient{u, transport}}, nil
 }
 
 func (c *BugzillaBug) UnmarshalJSON(data []byte) error {
@@ -63,32 +62,11 @@ func (c *BugzillaBug) UnmarshalJSON(data []byte) error {
 }
 
 func (b *BugzillaClient) FetchBug(id string) (*BugzillaBug, error) {
-	u := url.URL{
-		Scheme: b.BaseURL.Scheme,
-		Host:   b.BaseURL.Host,
-		Path:   fmt.Sprintf("%s/rest/bug/%s", b.BaseURL.Path, id),
-	}
-
-	request, err := http.NewRequest("GET", u.String(), nil)
-
-	if err != nil {
-		return nil, err
-	}
-
-	client := &http.Client{Transport: NewJSONTransport(b.Transport)}
-	r, err := client.Do(request)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer r.Body.Close()
-
 	bzResponse := new(struct {
 		Bugs []BugzillaBug
 	})
 
-	err = json.NewDecoder(r.Body).Decode(bzResponse)
+	err := b.JSONGetRequest(fmt.Sprintf("/rest/bug/%s", id), nil, &bzResponse)
 
 	if err != nil {
 		return nil, err

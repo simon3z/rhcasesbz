@@ -11,8 +11,7 @@ import (
 /* cspell:ignore rhcasesbz bugzilla bugzillas  bzapikey */
 
 type HydraClient struct {
-	BaseURL   *url.URL
-	Transport http.RoundTripper
+	JSONClient
 }
 
 type HydraAccount struct {
@@ -71,46 +70,19 @@ func NewHydraClient(baseURL string, transport http.RoundTripper) (*HydraClient, 
 		return nil, err
 	}
 
-	return &HydraClient{u, transport}, nil
-}
-
-func (h *HydraClient) getRequest(path string, v interface{}) error {
-	u := url.URL{
-		Scheme: h.BaseURL.Scheme,
-		Host:   h.BaseURL.Host,
-		Path:   fmt.Sprintf("%s/%s", h.BaseURL.Path, path),
-	}
-
-	request, err := http.NewRequest("GET", u.String(), nil)
-
-	if err != nil {
-		return err
-	}
-
-	client := &http.Client{Transport: NewJSONTransport(h.Transport)}
-	r, err := client.Do(request)
-
-	if err != nil {
-		return err
-	}
-
-	defer r.Body.Close()
-
-	err = json.NewDecoder(r.Body).Decode(v)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return &HydraClient{JSONClient{u, transport}}, nil
 }
 
 func (h *HydraClient) FetchCase(id string) (*HydraCase, error) {
 	c := new(HydraCase)
 
-	err := h.getRequest(fmt.Sprintf("/rs/cases/%s", id), c)
+	err := h.JSONGetRequest(fmt.Sprintf("/rs/cases/%s", id), nil, c)
 
-	return c, err
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
 func (c *HydraCase) Link() string {
@@ -120,7 +92,11 @@ func (c *HydraCase) Link() string {
 func (h *HydraClient) FetchAccount(id string) (*HydraAccount, error) {
 	a := new(HydraAccount)
 
-	err := h.getRequest(fmt.Sprintf("/rs/accounts/%s", id), a)
+	err := h.JSONGetRequest(fmt.Sprintf("/rs/accounts/%s", id), nil, a)
 
-	return a, err
+	if err != nil {
+		return nil, err
+	}
+
+	return a, nil
 }
