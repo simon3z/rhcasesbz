@@ -17,8 +17,17 @@ func main() {
 	rhpass := os.Getenv("RHPASS")
 	rhbzkey := os.Getenv("RHBZKEY")
 
-	h := rhcasesbz.NewHydraClient(rhuser, rhpass)
-	b := rhcasesbz.NewBugzillaClient(rhbzkey)
+	h, err := rhcasesbz.NewHydraClient("https://api.access.redhat.com", rhuser, rhpass)
+
+	if err != nil {
+		panic(err)
+	}
+
+	b, err := rhcasesbz.NewBugzillaClient("https://bugzilla.redhat.com", rhbzkey)
+
+	if err != nil {
+		panic(err)
+	}
 
 	r := csv.NewReader(os.Stdin)
 	r.Comma = '\t'

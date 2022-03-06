@@ -11,7 +11,7 @@ import (
 /* cspell:ignore rhcasesbz bugzilla bugzillas  bzapikey */
 
 type HydraClient struct {
-	Host     string
+	BaseURL  *url.URL
 	Username string
 	Password string
 }
@@ -65,12 +65,22 @@ func (c *HydraCase) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func NewHydraClient(username, password string) *HydraClient {
-	return &HydraClient{"api.access.redhat.com", username, password}
+func NewHydraClient(baseURL, username, password string) (*HydraClient, error) {
+	u, err := url.Parse(baseURL)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &HydraClient{u, username, password}, nil
 }
 
 func (h *HydraClient) getRequest(path string, v interface{}) error {
-	u := url.URL{Scheme: "https", Host: h.Host, Path: path}
+	u := url.URL{
+		Scheme: h.BaseURL.Scheme,
+		Host:   h.BaseURL.Host,
+		Path:   fmt.Sprintf("%s/%s", h.BaseURL.Path, path),
+	}
 
 	request, err := http.NewRequest("GET", u.String(), nil)
 

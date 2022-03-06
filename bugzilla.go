@@ -13,8 +13,8 @@ import (
 var ErrBugNotFound = errors.New("bugzilla: bug not found")
 
 type BugzillaClient struct {
-	Host   string
-	ApiKey string
+	BaseURL *url.URL
+	ApiKey  string
 }
 
 type BugzillaBug struct {
@@ -23,12 +23,22 @@ type BugzillaBug struct {
 	TargetRelease []string `json:"target_release"`
 }
 
-func NewBugzillaClient(apikey string) *BugzillaClient {
-	return &BugzillaClient{"bugzilla.redhat.com", apikey}
+func NewBugzillaClient(baseURL string, apikey string) (*BugzillaClient, error) {
+	u, err := url.Parse(baseURL)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &BugzillaClient{u, apikey}, nil
 }
 
 func (b *BugzillaClient) FetchBug(id string) (*BugzillaBug, error) {
-	u := url.URL{Scheme: "https", Host: b.Host, Path: fmt.Sprintf("/rest/bug/%s", id)}
+	u := url.URL{
+		Scheme: b.BaseURL.Scheme,
+		Host:   b.BaseURL.Host,
+		Path:   fmt.Sprintf("%s/rest/bug/%s", b.BaseURL.Path, id),
+	}
 
 	request, err := http.NewRequest("GET", u.String(), nil)
 
