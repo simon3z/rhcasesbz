@@ -9,12 +9,13 @@ import (
 	"github.com/simon3z/rhcasesbz"
 )
 
-/* cspell:ignore rhuser rhpass rhcasesbz bugzillas rhbzkey */
+/* cspell:ignore rhuser rhpass rhcasesbz bugzillas rhbzkey rhjikey */
 
 func main() {
 	rhuser := os.Getenv("RHUSER")
 	rhpass := os.Getenv("RHPASS")
 	rhbzkey := os.Getenv("RHBZKEY")
+	rhjikey := os.Getenv("RHJIKEY")
 
 	h, err := rhcasesbz.NewHydraClient("https://api.access.redhat.com", rhuser, rhpass)
 
@@ -23,6 +24,12 @@ func main() {
 	}
 
 	b, err := rhcasesbz.NewBugzillaClient("https://bugzilla.redhat.com", rhbzkey)
+
+	if err != nil {
+		panic(err)
+	}
+
+	j, err := rhcasesbz.NewJiraClient("https://issues.redhat.com", rhjikey)
 
 	if err != nil {
 		panic(err)
@@ -81,7 +88,16 @@ func main() {
 					panic(err)
 				}
 
-				z := append(e, Hyperlink(fmt.Sprintf("BZ#%s", i.ID), i.Link), PreviewString(u.Summary, 40), u.Status, ShortenProductRelease(u.Product, GetBugTargetRelease(u), true))
+				t, err := FindJiraIssueByBugzillaID(j, i.ID)
+				ts := ""
+
+				if err == nil {
+					ts = Hyperlink(t.Key, t.Link)
+				} else if err != ErrJiraBugIssueNotFound {
+					panic(err)
+				}
+
+				z := append(e, Hyperlink(fmt.Sprintf("BZ#%s", i.ID), i.Link), ts, PreviewString(u.Summary, 40), u.Status, ShortenProductRelease(u.Product, GetBugTargetRelease(u), true))
 
 				w.Write(z)
 			}

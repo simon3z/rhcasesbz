@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -10,7 +11,7 @@ import (
 	"github.com/simon3z/rhcasesbz"
 )
 
-/* cspell:ignore rhcasesbz kubernetes rhacm rhocs rhodf */
+/* cspell:ignore rhcasesbz kubernetes rhacm rhocs rhodf rhelplan ocpbugsm */
 
 func Hyperlink(text, url string) string {
 	return fmt.Sprintf("=HYPERLINK(\"%s\",\"%s\")", url, text)
@@ -86,4 +87,24 @@ func GetBugTargetRelease(b *rhcasesbz.BugzillaBug) string {
 	}
 
 	return strings.Join(r, ",")
+}
+
+var ErrJiraBugIssueNotFound = errors.New("jira: bug issue not found")
+var ErrJiraMultipleBugIssuesFound = errors.New("jira: multiple issues found for single bugs")
+
+func FindJiraIssueByBugzillaID(j *rhcasesbz.JiraClient, id string) (*rhcasesbz.JiraIssue, error) {
+	l, err := j.FindIssues(fmt.Sprintf("cf[12316840]=%s AND project IN ('RHELPLAN', 'OCPBUGSM')", rhcasesbz.JQLEscapeString(id)))
+
+	if err != nil {
+		return nil, err
+	}
+
+	switch {
+	case len(l) < 1:
+		return nil, ErrJiraBugIssueNotFound
+	case len(l) > 1:
+		return nil, ErrJiraMultipleBugIssuesFound
+	}
+
+	return &l[0], nil
 }

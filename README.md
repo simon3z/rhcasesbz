@@ -4,5 +4,5 @@
 
 # Usage
 
-    $ export RHUSER='john@example.com' RHPASS='password' RHBZKEY='token'
+    $ export RHUSER='john@example.com' RHPASS='password' RHBZKEY='token' RHJIKEY='token'
     $ echo 00000000 | rhcasesbz
