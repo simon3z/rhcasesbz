@@ -78,12 +78,7 @@ func (h *HydraClient) getRequest(path string, v interface{}) error {
 		return err
 	}
 
-	request.SetBasicAuth(h.Username, h.Password)
-
-	request.Header.Set("Accept", "application/json")
-	request.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
+	client := &http.Client{Transport: NewBasicAuthTransport(NewJSONTransport(http.DefaultTransport), h.Username, h.Password)}
 	r, err := client.Do(request)
 
 	if err != nil {

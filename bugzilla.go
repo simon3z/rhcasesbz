@@ -8,13 +8,13 @@ import (
 	"net/url"
 )
 
-/* cspell:ignore rhcasesbz bzapikey */
+/* cspell:ignore rhcasesbz */
 
 var ErrBugNotFound = errors.New("bugzilla: bug not found")
 
 type BugzillaClient struct {
-	Host     string
-	BZApiKey string
+	Host   string
+	ApiKey string
 }
 
 type BugzillaBug struct {
@@ -23,8 +23,8 @@ type BugzillaBug struct {
 	TargetRelease []string `json:"target_release"`
 }
 
-func NewBugzillaClient(bzapikey string) *BugzillaClient {
-	return &BugzillaClient{"bugzilla.redhat.com", bzapikey}
+func NewBugzillaClient(apikey string) *BugzillaClient {
+	return &BugzillaClient{"bugzilla.redhat.com", apikey}
 }
 
 func (b *BugzillaClient) FetchBug(id string) (*BugzillaBug, error) {
@@ -36,12 +36,7 @@ func (b *BugzillaClient) FetchBug(id string) (*BugzillaBug, error) {
 		return nil, err
 	}
 
-	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", b.BZApiKey))
-
-	request.Header.Set("Accept", "application/json")
-	request.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
+	client := &http.Client{Transport: NewBearerAuthTransport(NewJSONTransport(http.DefaultTransport), b.ApiKey)}
 	r, err := client.Do(request)
 
 	if err != nil {
