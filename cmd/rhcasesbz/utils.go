@@ -65,10 +65,6 @@ func ShortenProductRelease(product, release string, l bool) string {
 	return fmt.Sprintf("%s%s%s", p, s, release)
 }
 
-func GetCaseLink(id string) string {
-	return fmt.Sprintf("https://access.redhat.com/support/cases/#/case/%s", id)
-}
-
 func GetBugTargetRelease(b *rhcasesbz.BugzillaBug) string {
 	if b.ZStreamTarget != "" && b.ZStreamTarget != "---" {
 		return b.ZStreamTarget

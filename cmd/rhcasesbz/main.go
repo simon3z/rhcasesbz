@@ -17,7 +17,7 @@ func main() {
 	rhbzkey := os.Getenv("RHBZKEY")
 	rhjikey := os.Getenv("RHJIKEY")
 
-	h, err := rhcasesbz.NewHydraClient("https://api.access.redhat.com", rhcasesbz.NewBasicAuthTransport(nil, rhuser, rhpass))
+	h, err := rhcasesbz.NewHydraClient("https://access.redhat.com", rhcasesbz.NewBasicAuthTransport(nil, rhuser, rhpass))
 
 	if err != nil {
 		panic(err)
@@ -70,7 +70,7 @@ func main() {
 			accountMap[c.Account] = a.Name
 		}
 
-		e := []string{Hyperlink(record[0], GetCaseLink(c.ID)), accountMap[c.Account]}
+		e := []string{Hyperlink(c.ID, c.Link), accountMap[c.Account]}
 
 		if len(record) > 1 {
 			e = append(e, record[1:]...)
@@ -78,10 +78,10 @@ func main() {
 
 		e = append(e, PreviewString(c.Summary, 40), ShortenProductRelease(c.Product, c.Version, false), c.Status, c.Severity, FormatDate(c.LastModified))
 
-		if len(c.Bugzillas.Items) == 0 {
+		if len(c.Bugzillas) == 0 {
 			w.Write(e)
 		} else {
-			for _, i := range c.Bugzillas.Items {
+			for _, i := range c.Bugzillas {
 				u, err := b.FetchBug(i.ID)
 
 				if err != nil {
